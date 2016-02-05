@@ -128,6 +128,7 @@ private:
     std::vector<double> joint_efforts_;
 
     std::vector<double> joint_velocity_command_;
+    std::vector<double> previous_joint_velocity_command_;
 };
 
 }

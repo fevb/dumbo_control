@@ -295,6 +295,7 @@ void SchunkArmHW::registerHandles(hardware_interface::JointStateInterface &js_in
     joint_efforts_ = std::vector<double>(dof, 0.0);
 
     joint_velocity_command_ = std::vector<double>(dof, 0.0);
+    previous_joint_velocity_command_ = std::vector<double>(dof, 0.0);
 
     for(unsigned int i=0; i<dof; i++)
     {
@@ -381,7 +382,20 @@ void SchunkArmHW::write()
 {
     if(isInitialized())
     {
+      
+      // skip module if current and past velocity are zero
+      unsigned int module_count = 0;
+      while(previous_joint_velocity_command_[module_number_]==0.0 && joint_velocity_command_[module_number_]==0.0)
+	{
+	  module_number_++;
+	  module_count++;
+	  if(module_number_ >= params_->GetDOF()) module_number_ = 0;
+	  if(module_count>params_->GetDOF()) return;
+	}
+
         bool ret = moveVel(joint_velocity_command_[module_number_], module_number_, false);
+
+	previous_joint_velocity_command_[module_number_] = joint_velocity_command_[module_number_];
 
         if(!ret)
         {
